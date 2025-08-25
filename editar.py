@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 from zeep import Client
 from openpyxl import Workbook
+import json
 
 load_dotenv()
 
@@ -48,26 +49,18 @@ def click_element(driver, element):
 script_dir = os.path.dirname(os.path.abspath(__file__))
 planilha_path = os.path.join(script_dir, "planilha_filtrada.xlsx")
 
-already_registered_path = os.path.join(script_dir, f"registros_cadastrados_{head_office}.xlsx")
-error_path = os.path.join(script_dir, f"registros_com_erro_{head_office}.xlsx")
+config_path = os.path.join(script_dir, "config.json")
+with open(config_path, "r", encoding="utf-8") as f:
+    config = json.load(f)
 
-if os.path.exists(already_registered_path):
-    try:
-        registros_cadastrados = pd.read_excel(already_registered_path)
-        print("Planilha de registros já cadastrados carregada com sucesso!")
-    except Exception as e:
-        print(f"Erro ao carregar a planilha de registros cadastrados: {e}")
-else:
-    registros_cadastrados = pd.DataFrame(columns=["nome_completo", "cpf", "email", "data_nascimento", "cep", "logradouro", "numero", "bairro", "telefone"])
+colunas_selecionadas = config["colunas"]
+coluna_cpf = config["coluna_cpf"]
+atendente_escolhido = config["atendente"]
 
-if os.path.exists(error_path):
-    try:
-        registros_com_erro = pd.read_excel(error_path)
-        print("Planilha de registros com erro carregada com sucesso!")
-    except Exception as e:
-        print(f"Erro ao carregar a planilha de registros com erro: {e}")
-else:
-    registros_com_erro = pd.DataFrame(columns=["nome_completo", "cpf", "email", "data_nascimento", "cep", "logradouro", "numero", "bairro", "telefone"])
+print("Configuração recebida:")
+print(f"→ Colunas: {colunas_selecionadas}")
+print(f"→ Coluna CPF: {coluna_cpf}")
+print(f"→ Atendente: {atendente_escolhido}")
 
 def get_aluno_id(cpf, codigo_cliente, token):
     parametros_busca = f'CPF={cpf}'
@@ -82,36 +75,6 @@ def get_aluno_id(cpf, codigo_cliente, token):
     except Exception as e:
         print(f"Erro ao obter aluno para o CPF {cpf}: {e}")
         return None
-
-def salvar_registro_aluno(row):
-    novo_registro = {
-        "nome_completo": row['nome_completo'],
-        "cpf": row['cpf'],
-        "email": row['email'],
-        "data_nascimento": row['data_nascimento'],
-        "cep": row['cep'],
-        "logradouro": row['logradouro'],
-        "numero": row['numero'],
-        "bairro": row['bairro'],
-        "telefone": row['telefone'],
-    }
-    registros_cadastrados.loc[len(registros_cadastrados)] = novo_registro
-    registros_cadastrados.to_excel(already_registered_path, index=False)
-
-def salvar_registro_error(row):
-    novo_registro = {
-        "nome_completo": row['nome_completo'],
-        "cpf": row['cpf'],
-        "email": row['email'],
-        "data_nascimento": row['data_nascimento'],
-        "cep": row['cep'],
-        "logradouro": row['logradouro'],
-        "numero": row['numero'],
-        "bairro": row['bairro'],
-        "telefone": row['telefone'],
-    }
-    registros_com_erro.loc[len(registros_com_erro)] = novo_registro
-    registros_com_erro.to_excel(error_path, index=False)
 
 try:
     dados = pd.read_excel(planilha_path)
@@ -159,7 +122,8 @@ try:
         time.sleep(3)
 
     for _, row in dados.iterrows():
-        aluno_id = get_aluno_id(row['CPF'], credenciais[head_office]['codigo_cliente'], credenciais[head_office]['token'])
+        cpf = row.get(coluna_cpf)
+        aluno_id = get_aluno_id(cpf, credenciais[head_office]['codigo_cliente'], credenciais[head_office]['token'])
 
         driver.get(f"https://www.sponteeducacional.net.br/SPCad/AlunoCadastro.aspx?cad=true&id={aluno_id}&ce=1")
         time.sleep(5)
@@ -237,7 +201,6 @@ try:
 
 except Exception as e:
     print(f"Erro: {e}")
-    salvar_registro_error(row)
 
 finally:
     driver.quit()
