@@ -1,6 +1,7 @@
 import os
 import time
 import pandas as pd
+from datetime import datetime
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -68,8 +69,8 @@ if os.path.exists(error_path):
 else:
     registros_com_erro = pd.DataFrame(columns=["nome_completo", "cpf", "email", "data_nascimento", "cep", "logradouro", "numero", "bairro", "telefone"])
 
-def get_aluno_id(nome, codigo_cliente, token):
-    parametros_busca = f'Nome={nome}'
+def get_aluno_id(cpf, codigo_cliente, token):
+    parametros_busca = f'CPF={cpf}'
     try:
         response = client.service.GetAlunos(nCodigoCliente=codigo_cliente, sToken=token, sParametrosBusca=parametros_busca)
         
@@ -79,7 +80,7 @@ def get_aluno_id(nome, codigo_cliente, token):
         else:
             return None
     except Exception as e:
-        print(f"Erro ao obter aluno para o nome {nome}: {e}")
+        print(f"Erro ao obter aluno para o CPF {cpf}: {e}")
         return None
 
 def salvar_registro_aluno(row):
@@ -158,73 +159,82 @@ try:
         time.sleep(3)
 
     for _, row in dados.iterrows():
-        aluno_id = get_aluno_id(row['nome_completo'], credenciais[head_office]['codigo_cliente'], credenciais[head_office]['token'])
+        aluno_id = get_aluno_id(row['CPF'], credenciais[head_office]['codigo_cliente'], credenciais[head_office]['token'])
 
         driver.get(f"https://www.sponteeducacional.net.br/SPCad/AlunoCadastro.aspx?cad=true&id={aluno_id}&ce=1")
         time.sleep(5)
-        
-        # interessado_span = driver.find_element(By.XPATH, "//*[@id='__tab_tab_TabPanel6']")
-        # click_element(driver, interessado_span)
-        # time.sleep(5)
 
-        # atendente_select = driver.find_element(By.XPATH, "//*[(@id='select2-tab_TabPanel6_tabInteressado_tbinteressado_cmbAtendente-container')]")
-        # atendente_select.click()
-        # time.sleep(5)
+        followup_span = driver.find_element(By.XPATH, "//*[@id='__tab_tab_TabPanel9']")
+        click_element(driver, followup_span)
+        time.sleep(5)
 
-        # atendentes = {
-        #     "Aldeota": "Mara Michele Dos Santos Milfort",
-        #     "Sul": "Mayara de Araujo Barros",
-        # }
+        btn_incluir = driver.find_element(By.ID, "tab_TabPanel9_btnIncluirFollowUp_div")
+        click_element(driver, btn_incluir)
+        time.sleep(5)
 
-        # atendente_nome = atendentes.get(head_office, "Mara Michele Dos Santos Milfort")
-        # atendente_option = driver.find_element(By.XPATH, f"//li[contains(text(), '{atendente_nome}')]")
-        # atendente_option.click()
+        atendente_select = driver.find_element(By.ID, "select2-cmbAtendente-container")
+        atendente_select.click()
+        time.sleep(5)
 
-        # turma_de_interesse_container = driver.find_element(By.XPATH, "//*[(@id='__tab_tab_TabPanel6_tabInteressado_tbCursos')]")
-        # click_element(driver, turma_de_interesse_container)
-        # time.sleep(5)
+        atendentes = {
+            "Aldeota": "Leticia Pereira Dos Anjos",
+            "Sul": "Leticia Pereira Dos Anjos",
+        }
 
-        # tipo_curso_select = driver.find_element(By.XPATH, "//*[(@id='select2-tab_TabPanel6_tabInteressado_tbCursos_cmbTipoCurso-container')]")
-        # tipo_curso_select.click()
-        # time.sleep(5)
+        atendente_nome = atendentes.get(head_office, "Leticia Pereira Dos Anjos")
+        atendente_option = driver.find_element(By.XPATH, f"//li[contains(text(), '{atendente_nome}')]")
+        atendente_option.click()
+        time.sleep(5)
 
-        # tipos_curso = {
-        #     "Aldeota": "Curso Livre Formação",
-        #     "Sul": "Curso Livre Formação",
-        # }
-        
-        # tipo_curso_nome = tipos_curso.get(head_office, tipos_curso[head_office])
-        # tipo_curso_option = driver.find_element(By.XPATH, f"//li[contains(text(), '{tipo_curso_nome}')]")
-        # tipo_curso_option.click()
-        # time.sleep(5)
+        tipo_contato_select = driver.find_element(By.ID, "select2-cmbTipoContato-container")
+        tipo_contato_select.click()
+        time.sleep(5)
 
-        # turma_interesse_select = driver.find_element(By.XPATH, "//*[(@id='select2-tab_TabPanel6_tabInteressado_tbCursos_cmbTurma-container')]")
-        # turma_interesse_select.click()
-        # time.sleep(5)
+        whatsapp_option = driver.find_element(By.XPATH, "//li[contains(normalize-space(.), 'WhatsApp')]")
+        whatsapp_option.click()
+        time.sleep(5)
 
-        # turma_interesse_option = driver.find_element(By.XPATH, f"//li[contains(text(), '{turma}')]")
-        # click_element(driver, turma_interesse_option)
-        # time.sleep(5)
+        # Abre o select2 do Tipo de Agendamento
+        tipo_agendamento_select = driver.find_element(By.ID, "select2-cmbTipoAgendamento-container")
+        tipo_agendamento_select.click()
+        time.sleep(5)
 
-        # curso_interesse = driver.find_element(By.XPATH, "//a[contains(text(), 'Livre Formação em Full Stack 20231')]")
-        # checkbox = curso_interesse.find_element(By.XPATH, "./preceding-sibling::input[@type='checkbox']")
-        # click_element(driver, checkbox)
-        # time.sleep(5)
+        # Seleciona a opção "Cobrança"
+        cobranca_option = driver.find_element(By.XPATH, "//li[contains(normalize-space(.), 'Cobrança')]")
+        cobranca_option.click()
+        time.sleep(5)
 
-        # documentos_aba = driver.find_element(By.XPATH, "//*[@id='__tab_tab_TabPanel6_tabInteressado_tabDocumento']")
-        # click_element(driver, documentos_aba)
-        # time.sleep(5)
+        # Abre o select2 do Grau de Interesse
+        grau_interesse_select = driver.find_element(By.ID, "select2-cmbGrauInteresse-container")
+        grau_interesse_select.click()
+        time.sleep(5)
 
-        # documentos_select = driver.find_element(By.XPATH, "//*[(@id='select2-tab_TabPanel6_tabInteressado_tabDocumento_cmbDocumento-container')]")
-        # documentos_select.click()
-        # time.sleep(5)
+        # Seleciona a opção "Muito Interessado"
+        muito_interessado_option = driver.find_element(By.XPATH, "//li[contains(normalize-space(.), 'Muito Interessado')]")
+        muito_interessado_option.click()
+        time.sleep(5)
 
-        # documentos_option = driver.find_element(By.XPATH, "//li[contains(text(), 'TERMO DE COMPROMISSO - GERAÇÃO TECH 2025')]")
-        # documentos_option.click()
-        # time.sleep(5)
+        # Pega o mês atual em português (ex: "Agosto")
+        mes_atual = datetime.now().strftime("%B").upper()
 
-        # salvar_button = driver.find_element(By.XPATH, "//*[(@id='btnSalvar_div')]")
-        # salvar_button.click()
+        # Monta o assunto
+        assunto_texto = f"COBRANÇA PARCELA - {mes_atual}"
+
+        # Localiza o textarea e digita o assunto
+        assunto_field = driver.find_element(By.ID, "txtAssunto")
+        assunto_field.clear()
+        assunto_field.send_keys(assunto_texto)
+        time.sleep(5)
+
+        # # captura todos os elementos com esse id repetido
+        # salvar_botoes = driver.find_elements(By.XPATH, "//*[@id='btnSalvar_div']")
+
+        # # clica primeiro no do modal
+        # salvar_botoes[0].click()
+        # time.sleep(8)
+
+        # # depois no da tela principal
+        # salvar_botoes[1].click()
         # time.sleep(8)
 
 except Exception as e:
