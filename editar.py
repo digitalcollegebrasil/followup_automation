@@ -226,15 +226,13 @@ try:
         assunto_field.send_keys(assunto_texto)
         time.sleep(5)
 
-        # # captura todos os elementos com esse id repetido
-        # salvar_botoes = driver.find_elements(By.XPATH, "//*[@id='btnSalvar_div']")
-
-        # # clica primeiro no do modal
-        # salvar_botoes[0].click()
+        # # Clicando nos botões de Salvar
+        # salvar_modal_button = driver.find_element((By.XPATH, "//div[@id='updRodapeFixo']//div[@id='btnSalvar_div']"))
+        # salvar_modal_button.click()
         # time.sleep(8)
 
-        # # depois no da tela principal
-        # salvar_botoes[1].click()
+        # salvar_principal_button = driver.find_element(By.XPATH, "//div[@id='updRodapeRelativo']//div[@id='btnSalvar_div']")
+        # salvar_principal_button.click()
         # time.sleep(8)
 
 except Exception as e:
