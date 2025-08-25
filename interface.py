@@ -2,7 +2,14 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import pandas as pd
 import threading
-import json
+from pathlib import Path
+from utils_path import app_data_dir, resource_dir
+import sys, subprocess, json
+
+DATA_DIR = app_data_dir()
+
+TEMP_PLANILHA = DATA_DIR / "planilha_filtrada.xlsx"
+CONFIG_PATH = DATA_DIR / "config.json"
 
 ATENDENTES = [
     "Leticia Pereira Dos Anjos",
@@ -81,16 +88,14 @@ def iniciar_processo():
 
     atendente = atendente_selector.get()
 
-    temp_path = "planilha_filtrada.xlsx"
-    dados_filtrados.to_excel(temp_path, index=False)
+    dados_filtrados.to_excel(TEMP_PLANILHA, index=False)
 
     config = {
         "colunas": colunas_selecionadas,
         "coluna_cpf": col_cpf,
         "atendente": atendente
     }
-    with open("config.json", "w", encoding="utf-8") as f:
-        json.dump(config, f, ensure_ascii=False, indent=2)
+    CONFIG_PATH.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
 
     messagebox.showinfo("Resumo", f"""
     Colunas escolhidas: {colunas_selecionadas}
@@ -99,8 +104,11 @@ def iniciar_processo():
     """)
 
     def run_script():
-        import subprocess
-        subprocess.run(["python", "editar.py"])
+        if getattr(sys, 'frozen', False):
+            editar_exec = resource_dir() / "editar.exe"
+            subprocess.run([str(editar_exec)])
+        else:
+            subprocess.run([sys.executable, "editar.py"])
 
     threading.Thread(target=run_script).start()
 

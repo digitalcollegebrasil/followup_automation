@@ -10,6 +10,8 @@ import pandas as pd
 from zeep import Client
 from openpyxl import Workbook
 import json
+from utils_path import app_data_dir
+from pathlib import Path
 
 load_dotenv()
 
@@ -33,6 +35,11 @@ credenciais = {
     }
 }
 
+DATA_DIR = app_data_dir()
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+planilha_path = DATA_DIR / "planilha_filtrada.xlsx"
+config_path  = DATA_DIR / "config.json"
+
 def remove_value_attribute(driver, element):
     driver.execute_script("arguments[0].removeAttribute('value')", element)
 
@@ -46,12 +53,32 @@ def click_element(driver, element):
     driver.execute_script("arguments[0].scrollIntoView();", element)
     driver.execute_script("arguments[0].click();", element)
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-planilha_path = os.path.join(script_dir, "planilha_filtrada.xlsx")
+config = {}
+try:
+    if not config_path.exists():
+        raise FileNotFoundError(f"Arquivo de configuração não encontrado: {config_path}")
 
-config_path = os.path.join(script_dir, "config.json")
-with open(config_path, "r", encoding="utf-8") as f:
-    config = json.load(f)
+    with open(config_path, "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    for k in ("colunas", "coluna_cpf", "atendente"):
+        if k not in config:
+            raise KeyError(f"Chave '{k}' ausente no config.json")
+
+    colunas_selecionadas = config["colunas"]
+    coluna_cpf = config["coluna_cpf"]
+    atendente_escolhido = config["atendente"]
+
+    print("Configuração recebida:")
+    print(f"→ Colunas: {colunas_selecionadas}")
+    print(f"→ Coluna CPF: {coluna_cpf}")
+    print(f"→ Atendente: {atendente_escolhido}")
+
+except Exception as e:
+    raise SystemExit(f"[ERRO] Falha ao ler config.json: {e}")
+
+if not planilha_path.exists():
+    raise SystemExit(f"[ERRO] Planilha não encontrada: {planilha_path}. Gere pela interface primeiro.")
 
 colunas_selecionadas = config["colunas"]
 coluna_cpf = config["coluna_cpf"]
