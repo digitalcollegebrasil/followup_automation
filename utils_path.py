@@ -1,15 +1,15 @@
-import os, sys
 from pathlib import Path
+import os, sys
 
-APP_DIRNAME = "FollowUpApp"
+APP_NAME = "FollowUpAutomation"
 
-def app_data_dir():
-    base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
-    p = Path(base) / APP_DIRNAME
-    p.mkdir(parents=True, exist_ok=True)
-    return p
-
-def resource_dir():
-    if getattr(sys, 'frozen', False):
-        return Path(sys.executable).parent
+def resource_dir() -> Path:
+    if hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS)
     return Path(__file__).parent
+
+def app_data_dir() -> Path:
+    base = os.getenv("APPDATA") or os.path.expanduser("~")
+    d = Path(base) / APP_NAME
+    d.mkdir(parents=True, exist_ok=True)
+    return d

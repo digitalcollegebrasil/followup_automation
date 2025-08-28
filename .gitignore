@@ -5,3 +5,9 @@
 *.xls
 *.csv
 *.pdf
+*.ttf
+*.otf
+__pycache__/
+build/
+dist/
+*.spec
