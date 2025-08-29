@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"/>
+  <title>Automação do Follow-up</title>
+  <style>
+    @font-face {
+      font-family: 'Inter';
+      src: url('../assets/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root { --bg: #fff; --fg: #111; --muted:#666; --brand:#0ea5e9; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font: 14px/1.4 Inter, Segoe UI, Arial, sans-serif; }
+    header { display:flex; align-items:center; gap:16px; padding:16px 20px; border-bottom:1px solid #eee; }
+    header img { height:40px; }
+    header h1 { font-size:22px; margin:0; font-weight:700; }
+    .wrap { height: calc(100vh - 74px); overflow: auto; padding: 20px; }
+    .row { display:flex; gap:8px; align-items:center; margin: 8px 0; }
+    label { width:220px; color: var(--muted); }
+    input, select, button { font: inherit; }
+    input, select { padding:10px 12px; border:1px solid #ddd; border-radius:10px; background:#fff; min-width:320px; }
+    button { padding:10px 16px; border:0; border-radius:12px; background:var(--brand); color:#fff; font-weight:600; cursor:pointer; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .group { border:1px solid #eee; border-radius:14px; padding:16px; margin:16px 0; }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="../assets/logo.png" alt="Digital College" onerror="this.style.display='none'">
+    <h1>Automação do Follow-up</h1>
+  </header>
+
+  <div class="wrap">
+    <div class="group">
+      <div class="row">
+        <label>Planilha (.xlsx)</label>
+        <button id="pick">Selecionar Planilha</button>
+        <span id="picked" class="muted"></span>
+      </div>
+
+      <div class="row">
+        <label>Aba</label>
+        <select id="sheet"></select>
+      </div>
+
+      <div class="row">
+        <label>Linha de cabeçalho</label>
+        <select id="header"></select>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="row">
+        <label>Coluna de AlunoID (se existir)</label>
+        <select id="alunoid"></select>
+      </div>
+
+      <div class="row">
+        <label>Coluna de CPF (se não houver AlunoID)</label>
+        <select id="cpf"></select>
+      </div>
+
+      <div class="row">
+        <label>Atendente</label>
+        <select id="atendente">
+          <option>Leticia Pereira Dos Anjos</option>
+          <option>Ana Celia da Silva Tavares</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label>Sede</label>
+        <select id="sede">
+          <option>Aldeota</option>
+          <option>Sul</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label>E-mail Sponte</label>
+        <input id="email" type="email" placeholder="seu@email.com">
+      </div>
+
+      <div class="row">
+        <label>Senha Sponte</label>
+        <input id="senha" type="password" placeholder="••••••••">
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="go" disabled>Iniciar Script</button>
+      <span class="muted" id="status"></span>
+      <pre id="logs" style="white-space:pre-wrap; border:1px solid #eee; border-radius:10px; padding:12px; height:200px; overflow:auto; background:#fafafa; margin-top:10px;"></pre>
+    </div>
+  </div>
+
+  <script src="../node_modules/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
