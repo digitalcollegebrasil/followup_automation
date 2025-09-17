@@ -375,6 +375,22 @@ async function main() {
         await sleep(400);
         await screenshot(driver, path.join(DATA_DIR, `aluno_${alunoId}_02_filled.png`));
 
+        // const salvarModalBtn = await driver.wait(
+        //   until.elementLocated(By.xpath("//div[@id='updRodapeFixo']//div[@id='btnSalvar_div']")),
+        //   10000
+        // );
+        // await clickElement(driver, salvarModalBtn);
+        // await sleep(3000);
+
+        // await driver.switchTo().defaultContent();
+
+        // const salvarPrincipalBtn = await driver.wait(
+        //   until.elementLocated(By.xpath("//div[@id='updRodapeRelativo']//div[@id='btnSalvar_div']")),
+        //   10000
+        // );
+        // await clickElement(driver, salvarPrincipalBtn);
+        // await sleep(3000);
+
         await driver.switchTo().defaultContent();
       } catch (rowErr) {
         console.error(`[ERRO] Linha ${i + 2}:`, rowErr?.message || rowErr);
