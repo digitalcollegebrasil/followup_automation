@@ -103,6 +103,56 @@ async function getAlunoIdByCPF(cpf, codigo_cliente, token, soapClient) {
   return null;
 }
 
+async function selectByVisibleText(driver, selectId, visibleText) {
+  // 1) tenta setar direto no <select> + disparar change
+  const res = await driver.executeScript(
+    `
+    const sel = document.getElementById(arguments[0]);
+    if (!sel) return { ok:false, reason:'notfound' };
+    const target = String(arguments[1] || '').trim().toUpperCase();
+
+    let matched = null;
+    for (const opt of sel.options) {
+      const t = (opt.textContent || opt.innerText || '').trim().toUpperCase();
+      if (t === target) { matched = opt; break; }
+    }
+    if (!matched) return { ok:false, reason:'nooption' };
+
+    sel.value = matched.value;
+    sel.selectedIndex = matched.index;
+
+    // eventos para Select2 / listeners da página
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    sel.dispatchEvent(new Event('input',  { bubbles: true }));
+
+    // se jQuery estiver presente (Select2 costuma ter)
+    try { if (window.$) $(sel).trigger('change'); } catch(e) {}
+
+    return { ok:true, value: sel.value, text: matched.text };
+    `,
+    selectId,
+    visibleText
+  );
+
+  if (res && res.ok) return;
+
+  // 2) fallback: clicar no container do Select2 e escolher no dropdown
+  const containerCss = `#select2-${selectId}-container`;
+  const container = await driver.findElement(By.css(containerCss));
+  await clickElement(driver, container);
+
+  const opt = await driver.wait(
+    until.elementLocated(
+      By.xpath(`//li[contains(@class,'select2-results__option') and normalize-space(.)="${visibleText}"]`)
+    ),
+    10000
+  );
+  await clickElement(driver, opt);
+
+  // aguarde a aplicação da seleção
+  await sleep(300);
+}
+
 async function buildDriver() {
   console.log('[selenium] criando Chrome driver...');
   console.log('[selenium] chromedriver.path =', chromedriver.path);
@@ -302,37 +352,22 @@ async function main() {
         await screenshot(driver, path.join(DATA_DIR, `aluno_${alunoId}_01_follow.png`));
 
         const iframe = await driver.findElement(By.xpath("//iframe[contains(@src,'FollowUpCadastro.aspx')]"));
-        await driver.switchTo().frame(iframe);
-        await sleep(3000);
+        await driver.wait(until.ableToSwitchToFrame(iframe), 10000);
+        await sleep(500);
 
         await driver.wait(until.elementLocated(By.id('cmbAtendente')), 20000);
-        await driver.findElement(By.id('cmbAtendente')).click();
-        const optAt = await driver.findElement(
-          By.xpath(`//select[@id='cmbAtendente']/option[normalize-space(.)="${atendenteEscolhido}"]`)
-        );
-        await optAt.click();
-        await sleep(400);
 
-        await driver.findElement(By.id('cmbTipoContato')).click();
-        const optTc = await driver.findElement(
-          By.xpath(`//select[@id='cmbTipoContato']/option[normalize-space(.)="WhatsApp"]`)
-        );
-        await optTc.click();
-        await sleep(400);
+        await selectByVisibleText(driver, 'cmbAtendente',       (atendenteEscolhido || '').trim());
+        await sleep(2000);
 
-        await driver.findElement(By.id('cmbTipoAgendamento')).click();
-        const optTa = await driver.findElement(
-          By.xpath(`//select[@id='cmbTipoAgendamento']/option[normalize-space(.)="Cobrança"]`)
-        );
-        await optTa.click();
-        await sleep(400);
+        await selectByVisibleText(driver, 'cmbTipoContato',     'WhatsApp');
+        await sleep(2000);
 
-        await driver.findElement(By.id('cmbGrauInteresse')).click();
-        const optGi = await driver.findElement(
-          By.xpath(`//select[@id='cmbGrauInteresse']/option[normalize-space(.)="Muito Interessado"]`)
-        );
-        await optGi.click();
-        await sleep(400);
+        await selectByVisibleText(driver, 'cmbTipoAgendamento', 'Cobrança');
+        await sleep(2000);
+
+        await selectByVisibleText(driver, 'cmbGrauInteresse',   'Muito Interessado');
+        await sleep(2000);
 
         const assunto = await driver.findElement(By.id('txtAssunto'));
         await assunto.clear();
