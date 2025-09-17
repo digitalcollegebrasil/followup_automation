@@ -1,8 +1,0 @@
-pyinstaller
-selenium
-python-dotenv
-pandas
-openpyxl
-zeep
-lxml
-requests
